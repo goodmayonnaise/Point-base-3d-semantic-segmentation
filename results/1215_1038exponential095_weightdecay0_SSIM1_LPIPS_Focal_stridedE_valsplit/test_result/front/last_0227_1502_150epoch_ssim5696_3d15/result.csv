@@ -1,0 +1,48 @@
+[Test] 
+LSSIM : 0.5960 
+LPIPS : 0.3557
+Lseg : 1.1839
+PSNR : 10.4691
+SSIM : 0.4040
+mIoU : 0.3721
+mIoU 3D : 0.0371
+IoU per Class Result-----------------
+
+car			: 0.9210
+car			: 0.0603
+bicycle			: 0.0496
+bicycle			: 0.0001
+motorcycle		: 0.0106
+motorcycle		: 0.0005
+truck			: 0.0348
+truck			: 0.0034
+otehr vehicle		: 0.2130
+otehr vehicle		: 0.0262
+person			: 0.0909
+person			: 0.0002
+bicyclist		: 0.2299
+bicyclist		: 0.0015
+motorcyclist		: 0.0000
+motorcyclist		: 0.0001
+road			: 0.9379
+road			: 0.1900
+parking		: 0.2363
+parking		: 0.0118
+sidewalk		: 0.7136
+sidewalk		: 0.0652
+other ground		: 0.0005
+other ground		: 0.0002
+building		: 0.8137
+building		: 0.0769
+fence			: 0.2453
+fence			: 0.0153
+vegetation		: 0.7789
+vegetation		: 0.1614
+trunk			: 0.5580
+trunk			: 0.0136
+terrain			: 0.6882
+terrain			: 0.0732
+pole			: 0.4373
+pole			: 0.0031
+traffic_sign		: 0.1112
+traffic_sign		: 0.0012
