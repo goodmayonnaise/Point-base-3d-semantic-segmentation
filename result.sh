@@ -1,0 +1,1 @@
+watch -n 0.5 tail -n 10 log/result.csv
