@@ -4,9 +4,9 @@ from datetime import datetime, timedelta
 from train_fusion import Training
 from utils.pytorchtools import EarlyStopping
 from losses.focal_lovasz import FocalLosswithLovaszRegularizer
-from dataloaders.semantic_kitti_360 import SemanticKITTI
-from model.segmentor import EncoderDecoder as Segmentor
-from model.generator import EncoderDecoder as Generator
+from dataloader.semantic_kitti_360 import SemanticKITTI
+from models.segmentor import EncoderDecoder as Segmentor
+from models.generator import EncoderDecoder as Generator
 
 
 import torch
@@ -21,10 +21,10 @@ class Main():
         super(Main, self).__init__()
 
         self.mode = 'earlystop'
-        self.name = 'base_randomtheta'
+        self.name = 'fusion'
         self.train_mode = True
-        self.generator_path = '/vit-adapter-kitti/jyjeon/weights/generator/1215_1038exponential095_weightdecay0_SSIM1_LPIPS_Focal_stridedE_valsplit/last_weights.pth.tar'
-        self.segmentor_path = '/vit-adapter-kitti/jyjeon/weights/segmentor/kitti_batch6_epoch2000_FocalLosswithLovaszRegularizer_Adam/adapter_removevit_dim256_light1_1027_1039/earlystop_89_5084.pt'
+        self.generator_path = 'weights/generator/1215_1038exponential095_weightdecay0_SSIM1_LPIPS_Focal_stridedE_valsplit/last_weights.pth.tar'
+        self.segmentor_path = 'weights/segmentor/kitti_batch6_epoch2000_FocalLosswithLovaszRegularizer_Adam/adapter_removevit_dim256_light1_1027_1039/earlystop_89_5084.pt'
 
         self.set_device()
         self.set_config()
@@ -83,9 +83,9 @@ class Main():
         
     def set_data(self):
         if self.train_mode:
-            self.data_path = '/vit-adapter-kitti/data/semantic_kitti/kitti/dataset/sequences'
+            self.data_path = 'data/semantic_kitti/kitti/dataset/sequences'
         else:
-            self.data_path = '/vit-adapter-kitti/data/semantic_kitti/kitti/dataset/f_sequences'
+            self.data_path = 'data/semantic_kitti/kitti/dataset/f_sequences'
 
         dataset = SemanticKITTI(self.data_path, self.img_size, self.nclasses,
                                 mode='train', front=360, split=False, crop_size=self.crop_size)

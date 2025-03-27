@@ -5,9 +5,10 @@ import time
 from datetime import datetime, timedelta
 
 from models.segmentor import EncoderDecoder as SalsaNextAdapter
-from losses.loss import FocalLosswithLovaszRegularizer
+from losses.focal_lovasz import FocalLosswithLovaszRegularizer
 from dataloader.semantic_kitti_segmentor import SemanticKITTI
 from utils.pytorchtools import EarlyStopping
+from utils.cosine_annealing_with_warmup import CosineAnnealingWarmUpRestarts
 from train_segmentor import Training 
 
 
@@ -15,15 +16,15 @@ import torch
 import torch.distributed as dist
 from torch.nn import DataParallel
 from torch.utils.data import DataLoader, random_split
-from torch.optim import lr_scheduler, Adam
+from torch.optim import Adam
+# from torch.optim import lr_scheduler
 from torch.utils.tensorboard import SummaryWriter
 
 def main():
 
     # args --------------------------------------------------------------------------------------
-    name = "adapter_removevit_dim256_light1_warmup_t0100_tup75_weightdecay0001_"
+    name = "segmentor"
     ckpt_path = None
-    # ckpt_path = '/vit-adapter-kitti/jyjeon/weights/kitti_batch6_epoch2000_FocalLosswithLovaszRegularizer_Adam/adapter_removevit_dim256_light1_val08_1102_1250/last_weights.pth.tar'
 
     # # gpu setting -----------------------------------------------------------------------------
     torch.cuda.manual_seed_all(777)
@@ -58,7 +59,6 @@ def main():
 
     # optimizer = Adam(model.to(device).parameters(), weight_decay=0.005)
     # scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=100, eta_min=0.001)
-    from utils.cosine_annealing_with_warmup import CosineAnnealingWarmUpRestarts
     optimizer = Adam(model.to(device).parameters(), lr=0, weight_decay=0.001)
     # scheduler = CosineAnnealingWarmUpRestarts(optimizer, T_0=30, T_mult=1, eta_max=0.001,  T_up=10, gamma=0.5)
     # scheduler = CosineAnnealingWarmUpRestarts(optimizer, T_0=75, T_mult=1, eta_max=0.001, T_up=50, gamma=0.5)
@@ -67,7 +67,7 @@ def main():
     criterion = FocalLosswithLovaszRegularizer(ignore_index=0)
 
     # setting data ----------------------------------------------------------------------------
-    path = '/vit-adapter-kitti/data/semantic_kitti/kitti/dataset/sequences'
+    path = 'data/semantic_kitti/kitti/dataset/sequences'
     # train_dataset = SemanticKITTI(path, img_shape, nclasses, mode='train', front=True, split=False, crop_size=crop_size)
     # train_loader = DataLoader(train_dataset, num_workers=num_workers, batch_size=batch_size, shuffle=True)
     # val_dataset = SemanticKITTI(path, img_shape, nclasses, mode='valid', front=True, split=False, crop_size=crop_size)

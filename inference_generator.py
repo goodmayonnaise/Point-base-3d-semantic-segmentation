@@ -20,8 +20,8 @@ from torch.utils.data import DataLoader
 class Inference():
     def __init__(self):
         super(Inference, self).__init__()
-        self.generator_path = '/vit-adapter-kitti/jyjeon/weights/generator/1215_1038exponential095_weightdecay0_SSIM1_LPIPS_Focal_stridedE_valsplit/last_weights.pth.tar'
-        self.segmentor_path = '/vit-adapter-kitti/jyjeon/weights/fusion/1220_1640_base'
+        self.generator_path = 'weights/generator/1215_1038exponential095_weightdecay0_SSIM1_LPIPS_Focal_stridedE_valsplit/last_weights.pth.tar'
+        self.segmentor_path = 'weights/fusion/1220_1640_base'
 
         self.set_cuda()
         self.thetas = [81, 241]
@@ -374,14 +374,14 @@ class Inference():
             os.makedirs(self.save_dir)
 
     def set_loader(self):
-        self.data_path = '/vit-adapter-kitti/data/semantic_kitti/kitti/dataset/sequences'
+        self.data_path = 'data/semantic_kitti/kitti/dataset/sequences'
 
         dataset = SemanticKITTI(self.data_path, shape=(384, 1248), nclasses=20, 
                                 mode='valid', front=360, split=False, crop_size=128, thetas=self.thetas)
                                 # mode='valid', front=360, split=False, crop_size=128, thetas=[161])
         self.loader = DataLoader(dataset, batch_size=1, num_workers=self.num_workers, shuffle=False)
 
-        cfg_path = '/vit-adapter-kitti/jyjeon/data_loader/semantic-kitti2.yaml'
+        cfg_path = 'data_loader/semantic-kitti.yaml'
         CFG = yaml.safe_load(open(cfg_path, 'r'))
         color_dict = CFG['color_map']
         learning_map = CFG['learning_map']
@@ -658,7 +658,6 @@ class Inference():
             self.set_model()
             self.set_dir()
             progress = ProgressMeter(len(self.loader), 
-                                        # [self.loss1_run, self.miou1_run, self.miou2_run, self.miou3_run], 
                                      [self.miou3_run, self.miou4_run, self.miou5_run, self.miou6_run],
                                      prefix=f"{idx+1}/{len(ckpts)} {self.mode}")
             
@@ -786,188 +785,6 @@ class Inference():
                     # cv2.imwrite(f"{self.save_dir}/sample/segment_3.png", self.convert_color(torch.argmax(outs_seg, 1)[0][3].cpu().detach().numpy(), self.color_dict))
                     # cv2.imwrite(f"{self.save_dir}/sample/segment_4.png", self.convert_color(torch.argmax(outs_seg, 1)[0][4].cpu().detach().numpy(), self.color_dict))
                 self.logging2()
-
-        # self.set_init()
-        # progress = ProgressMeter(len(self.loader), 
-        #                             [self.loss1_run, self.miou1_run, self.miou2_run, self.miou3_run], 
-        #                             prefix=f"{self.mode} TEST ")
-        
-        # self.generator.eval()
-        # self.segmentor.eval()
-        # self.iou1.reset()
-        # self.iou2.reset()
-        # self.iou_3d.reset()
-        # self.iou_3d_knn.reset()
-
-        # with torch.no_grad():
-        #     for iter, batch in enumerate(self.loader):
-                
-        #         inputs_rdm = batch['rdm'].to(self.device)[:,:,128:,]
-        #         label = batch['label'].to(self.device)[:,128:,]
-                
-        #         proj_range = batch['proj_range'].to(self.device)[0]
-        #         unproj_range = batch['unproj_range'].to(self.device)[0]
-        #         px, py = batch['px'].to(self.device)[0], batch['py'].to(self.device)[0]
-                
-        #         bs = inputs_rdm.size(0)
-
-        #         outs_rgb, outs_seg1 = self.generator(inputs_rdm)
-        #         outs_seg2 = self.segmentor(outs_rgb, inputs_rdm)
-
-        #         # visualization -------------------------------------------------------
-        #         # mask = py < 256
-        #         # x, y = batch['x'].to(self.device), batch['y'].to(self.device)
-        #         # self.vis_3d(outs_seg1, outs_seg2, proj_range[:,self.crop_size:,], unproj_range[mask], px[mask], py[mask], x[mask], y[mask])
-        #         # ---------------------------------------------------------------------
-
-        #         loss1 = self.criterion(outs_seg1, label).detach()
-        #         loss2 = self.criterion(outs_seg2, label).detach()
-
-        #         # semantic kitti 360 knn
-        #         outs_seg2_temp = torch.cat([torch.zeros(128, 1248).to(self.device), torch.argmax(outs_seg2, 1)[0]], dim=0)
-        #         outs_knn = self.knn(proj_range, unproj_range, outs_seg2_temp, px, py)
-
-        #         py = py.detach().cpu().numpy()
-        #         px = px.detach().cpu().numpy()
-
-        #         labels_3d = batch['label_3d'].to(self.device)
-
-
-        #         label_c = np.zeros(px.shape[-1])
-        #         for i, (h, w) in enumerate(zip(py, px)):
-        #             label_c[i] = label[0, h, w].item()
-        #         label_seg = np.zeros([384, 1248])
-        #         for h, w, c in zip(py, px, label_c):
-        #             label_seg[h, w] = int(c)
-        #         label_c = self.convert_color(label_c)[0]
-
-
-        #         # out seg2에서 pixel 마다의 class 취득 후 2D seg map 생성 
-        #         outs_seg2_c = np.zeros(px.shape[-1])
-        #         for i, (h, w) in enumerate(zip(py, px)):
-        #             outs_seg2_c[i] = outs_seg2_temp[h, w].item()
-        #         outs_org = np.zeros([384,1248])
-        #         for h, w, c in zip(py, px, outs_seg2_c):
-        #             outs_org[h, w] = int(c)
-        #         outs_org = self.convert_color(np.expand_dims(outs_org, 0))[0]
-
-        #         # label 3d(point class)로 2D seg map 생성 
-        #         label_3d_seg = np.zeros([384, 1248])
-        #         for h, w, c in zip(py, px, labels_3d[0].detach().cpu().numpy()):
-        #             label_3d_seg[h, w] = int(c)
-        #         label_3d_seg = self.convert_color(np.expand_dims(label_3d_seg[self.crop_size:,], 0))[0]
-
-        #         # knn output으로 2D seg map 생성 
-        #         outs_knn_seg = np.zeros([384, 1248])
-        #         for h, w, c in zip(py, px, outs_knn.detach().cpu().numpy()):
-        #             outs_knn_seg[h, w] = int(c)
-        #         outs_knn_seg = self.convert_color(np.expand_dims(outs_knn_seg[self.crop_size:,], 0))[0]
-
-        #         c = rearrange(batch['label_c'][0], 'c h w -> h w c')[self.crop_size:,:,].numpy()*255
-        #         label_rgb = rearrange(batch['img'][0], 'c h w -> h w c').detach().cpu().numpy()
-        #         cv2.imwrite(f'{self.save_dir}/test3.png', np.concatenate([outs_org, label_3d_seg, c, label_rgb], axis=0))
-
-        #         a2 = np.where(outs_org>0, outs_org, label_rgb)
-        #         b2 = np.where(label_3d_seg>0, label_3d_seg, label_rgb)
-        #         c2 = np.where(c>0, c, label_rgb)
-        #         cv2.imwrite(f'{self.save_dir}/test4.png', np.concatenate([a2, b2, c2], axis=0))
-
-        #         self.iou1.addBatch(torch.argmax(outs_seg1, 1), label)
-        #         self.iou2.addBatch(torch.argmax(outs_seg2, 1), label)
-        #         self.iou_3d.addBatch(outs_knn, labels_3d[0])
-
-        #         miou1, per_iou1 = self.iou1.getIoU()
-        #         miou2, per_iou2 = self.iou2.getIoU()
-        #         miou3, per_iou3 = self.iou_3d.getIoU()
-
-        #         self.miou1_run.update(miou1, bs)
-        #         self.loss1_run.update(loss1.item(), bs)
-        #         self.car1_run.update(per_iou1[1].item(), bs)
-        #         self.bicycle1_run.update(per_iou1[2].item(), bs)
-        #         self.motorcycle1_run.update(per_iou1[3].item(), bs)
-        #         self.truck1_run.update(per_iou1[4].item(), bs)
-        #         self.other_vehicle1_run.update(per_iou1[5].item(), bs)
-        #         self.person1_run.update(per_iou1[6].item(), bs)
-        #         self.bicyclist1_run.update(per_iou1[7].item(), bs)
-        #         self.motorcyclist1_run.update(per_iou1[8].item(), bs)
-        #         self.road1_run.update(per_iou1[9].item(), bs)
-        #         self.parking1_run.update(per_iou1[10].item(), bs)
-        #         self.sidewalk1_run.update(per_iou1[11].item(), bs)
-        #         self.other_ground1_run.update(per_iou1[12].item(), bs)
-        #         self.building1_run.update(per_iou1[13].item(), bs)
-        #         self.fence1_run.update(per_iou1[14].item(), bs)
-        #         self.vegetation1_run.update(per_iou1[15].item(), bs)
-        #         self.trunk1_run.update(per_iou1[16].item(), bs)
-        #         self.terrain1_run.update(per_iou1[17].item(), bs)
-        #         self.pole1_run.update(per_iou1[18].item(), bs)
-        #         self.traffic_sign1_run.update(per_iou1[19].item(), bs)
-
-        #         self.miou2_run.update(miou2, bs)
-        #         self.loss2_run.update(loss2.item(), bs)
-        #         self.car2_run.update(per_iou2[1].item(), bs)
-        #         self.bicycle2_run.update(per_iou2[2].item(), bs)
-        #         self.motorcycle2_run.update(per_iou2[3].item(), bs)
-        #         self.truck2_run.update(per_iou2[4].item(), bs)
-        #         self.other_vehicle2_run.update(per_iou2[5].item(), bs)
-        #         self.person2_run.update(per_iou2[6].item(), bs)
-        #         self.bicyclist2_run.update(per_iou2[7].item(), bs)
-        #         self.motorcyclist2_run.update(per_iou2[8].item(), bs)
-        #         self.road2_run.update(per_iou2[9].item(), bs)
-        #         self.parking2_run.update(per_iou2[10].item(), bs)
-        #         self.sidewalk2_run.update(per_iou2[11].item(), bs)
-        #         self.other_ground2_run.update(per_iou2[12].item(), bs)
-        #         self.building2_run.update(per_iou2[13].item(), bs)
-        #         self.fence2_run.update(per_iou2[14].item(), bs)
-        #         self.vegetation2_run.update(per_iou2[15].item(), bs)
-        #         self.trunk2_run.update(per_iou2[16].item(), bs)
-        #         self.terrain2_run.update(per_iou2[17].item(), bs)
-        #         self.pole2_run.update(per_iou2[18].item(), bs)
-        #         self.traffic_sign2_run.update(per_iou2[19].item(), bs)
-
-        #         self.miou3_run.update(miou3, bs)
-        #         self.car3_run.update(per_iou3[1].item(), bs)
-        #         self.bicycle3_run.update(per_iou3[2].item(), bs)
-        #         self.motorcycle3_run.update(per_iou3[3].item(), bs)
-        #         self.truck3_run.update(per_iou3[4].item(), bs)
-        #         self.other_vehicle3_run.update(per_iou3[5].item(), bs)
-        #         self.person3_run.update(per_iou3[6].item(), bs)
-        #         self.bicyclist3_run.update(per_iou3[7].item(), bs)
-        #         self.motorcyclist3_run.update(per_iou3[8].item(), bs)
-        #         self.road3_run.update(per_iou3[9].item(), bs)
-        #         self.parking3_run.update(per_iou3[10].item(), bs)
-        #         self.sidewalk3_run.update(per_iou3[11].item(), bs)
-        #         self.other_ground3_run.update(per_iou3[12].item(), bs)
-        #         self.building3_run.update(per_iou3[13].item(), bs)
-        #         self.fence3_run.update(per_iou3[14].item(), bs)
-        #         self.vegetation3_run.update(per_iou3[15].item(), bs)
-        #         self.trunk3_run.update(per_iou3[16].item(), bs)
-        #         self.terrain3_run.update(per_iou3[17].item(), bs)
-        #         self.pole3_run.update(per_iou3[18].item(), bs)
-        #         self.traffic_sign3_run.update(per_iou3[19].item(), bs)
-
-                
-        #         progress.display(iter)
-
-        #         outs_seg1 = self.convert_color(torch.argmax(outs_seg1, 1).cpu().detach().numpy())[0] # b h w c
-        #         outs_seg2 = self.convert_color(torch.argmax(outs_seg2, 1).cpu().detach().numpy())[0]
-        #         inputs_rdm= rearrange(inputs_rdm, 'b c h w -> b h w c').cpu().detach().numpy()[0]
-        #         outs_rgb = rearrange(outs_rgb, 'b c h w -> b h w c').cpu().detach().numpy()[0]*255
-        #         labels_c = rearrange(batch['label_c'][0], 'c h w -> h w c').numpy()*255
-
-
-        #         cv2.imwrite(f"{self.save_dir}/vis_outseg.png", np.concatenate([labels_c, outs_seg1, outs_seg2, inputs_rdm], axis=0))
-                    
-        #         # for i in range(5):
-        #         #     result = np.concatenate([inputs_rdm[i], outs_seg1[i], outs_rgb[i], outs_seg2[i], labels_c[i]], axis=-2)
-        #         #     cv2.imwrite(f"{self.save_dir}/{str(i)}/{str(iter)}.png", result)
-
-        #         # cv2.imwrite(f"{self.save_dir}/0/segment_0.png", self.convert_color(torch.argmax(outs_seg, 1)[0][0].cpu().detach().numpy(), self.color_dict))
-        #         # cv2.imwrite(f"{self.save_dir}/sample/segment_1.png", self.convert_color(torch.argmax(outs_seg, 1)[0][1].cpu().detach().numpy(), self.color_dict))
-        #         # cv2.imwrite(f"{self.save_dir}/sample/segment_2.png", self.convert_color(torch.argmax(outs_seg, 1)[0][2].cpu().detach().numpy(), self.color_dict))
-        #         # cv2.imwrite(f"{self.save_dir}/sample/segment_3.png", self.convert_color(torch.argmax(outs_seg, 1)[0][3].cpu().detach().numpy(), self.color_dict))
-        #         # cv2.imwrite(f"{self.save_dir}/sample/segment_4.png", self.convert_color(torch.argmax(outs_seg, 1)[0][4].cpu().detach().numpy(), self.color_dict))
-        #     self.logs()
-
 
 if __name__ == "__main__":
     Inference().inference()

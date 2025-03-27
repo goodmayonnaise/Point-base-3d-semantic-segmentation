@@ -1,7 +1,7 @@
 import os, cv2, yaml, time
 import numpy as np 
 from datetime import timedelta
-from model.segmento import EncoderDecoder
+from models.segmentor import EncoderDecoder
 from dataloader.semantic_kitti_segmentor import SemanticKITTI
 from utils.logs import AverageMeter, ProgressMeter
 from utils.metrics import IOUEval
@@ -31,7 +31,7 @@ def convert_color(arr, color_dict):
     return result
 
 def inference(model, test_loader, save_path, device):
-    cfg_path = '/vit-adapter-kitti/jyjeon/data_loader/semantic-kitti2.yaml'
+    cfg_path = 'dataloader/semantic-kitti.yaml'
     CFG = yaml.safe_load(open(cfg_path, 'r'))
     color_dict = CFG['color_map']
     learning_map = CFG['learning_map']
@@ -192,7 +192,7 @@ def main():
     model = EncoderDecoder(20, input_shape, embed_dim=256)
     model = DataParallel(model.to(device), device_ids=num_gpu)
     model, _, epoch = read_model(model, ckpt_path, True)
-    path = '/vit-adapter-kitti/data/semantic_kitti/kitti/dataset/sequences'
+    path = 'data/semantic_kitti/kitti/dataset/sequences'
     testset = SemanticKITTI(path, img_shape, nclasses, mode='test', front=True, split=False, crop_size=crop_size)
     test_loader = DataLoader(testset, num_workers=num_workers, batch_size=batch_size)
     

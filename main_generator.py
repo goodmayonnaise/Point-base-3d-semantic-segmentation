@@ -7,7 +7,7 @@ from losses.lpips import LPIPS
 from losses.focal_lovasz import FocalLosswithLovaszRegularizer
 from losses.ssim import SSIM
 from dataloader.semantic_kitti_360 import SemanticKITTI
-from train import Training
+from train_generator import Training
 from models.generator import EncoderDecoder as Generator 
 
 import torch 
@@ -22,7 +22,7 @@ class MAIN():
         super(MAIN, self).__init__()
 
         self.mode = 'epoch'
-        self.name = 'generator_mfdscm_rdmscale255'
+        self.name = 'generator'
         self.train_mode = True
         self.set_device()
         self.set_config()
@@ -67,9 +67,9 @@ class MAIN():
     
     def set_data(self):
         if self.train_mode :
-            self.path = '/vit-adapter-kitti/data/semantic_kitti/kitti/dataset/sequences'
+            self.path = 'data/semantic_kitti/kitti/dataset/sequences'
         else:
-            self.path = '/vit-adapter-kitti/data/semantic_kitti/kitti/dataset/f_sequences'
+            self.path = 'data/semantic_kitti/kitti/dataset/f_sequences'
 
         dataset = SemanticKITTI(self.path, self.img_size, self.nclasses, 
                                 mode='train', front=True, split=False, crop_size=self.crop_size)

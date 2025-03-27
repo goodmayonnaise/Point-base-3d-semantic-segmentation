@@ -6,7 +6,7 @@ from datetime import timedelta
 
 from utils.metrics import IOUEval
 from utils.logs import AverageMeter, ProgressMeter
-from losses.loss import FocalLosswithLovaszRegularizer
+from losses.focal_lovasz import FocalLosswithLovaszRegularizer
 from dataloader.semantic_kitti_360 import SemanticKITTI
 from models.segmentor import EncoderDecoder as Segmentor
 from models.generator import EncoderDecoder as Generator
@@ -19,17 +19,13 @@ from torch.utils.data import DataLoader
 class Inference():
     def __init__(self):
         super(Inference, self).__init__()
-        self.generator_path = '/vit-adapter-kitti/jyjeon/weights/generator/1215_1038exponential095_weightdecay0_SSIM1_LPIPS_Focal_stridedE_valsplit/last_weights.pth.tar'
-
-        # self.segmentor_path = '/vit-adapter-kitti/jyjeon/weights/fusion/0102_1700_vgg_deconv_early10/earlystop.pt'
-        # self.segmentor_path = '/vit-adapter-kitti/jyjeon/weights/fusion/0102_1700_vgg_deconv_early10/best_miou.pth.tar'
-        # self.segmentor_path = '/vit-adapter-kitti/jyjeon/weights/fusion/0102_1327_base_randomtheta/best_miou.pth.tar'
-        self.segmentor_path = '/vit-adapter-kitti/jyjeon/weights/fusion/1220_1640_base/best_miou.pth.tar'
+        self.generator_path = 'jyjeon/weights/generator/1215_1038exponential095_weightdecay0_SSIM1_LPIPS_Focal_stridedE_valsplit/last_weights.pth.tar'
+        self.segmentor_path = 'jyjeon/weights/fusion/1220_1640_base/best_miou.pth.tar'
 
         self.set_cuda()
         self.set_loader()
 
-        cfg_path = '/vit-adapter-kitti/jyjeon/data_loader/semantic-kitti2.yaml'
+        cfg_path = 'data_loader/semantic-kitti.yaml'
         CFG = yaml.safe_load(open(cfg_path, 'r'))
         color_dict = CFG['color_map']
         learning_map = CFG['learning_map']
@@ -55,7 +51,6 @@ class Inference():
         for param in self.generator.parameters():
             param.requires_grad = False
 
-        # segmentor = Segmentor(20, (256, 1248))
         segmentor = Segmentor(20, (256, 1248), embed_dim=256)
         self.segmentor = DataParallel(segmentor.to(self.device), device_ids=self.num_gpu)
         s_info = torch.load(self.segmentor_path)
@@ -189,7 +184,7 @@ class Inference():
             os.makedirs(os.path.join(self.save_dir, '4'))
 
     def set_loader(self):
-        self.data_path = '/vit-adapter-kitti/data/semantic_kitti/kitti/dataset/sequences'
+        self.data_path = 'data/semantic_kitti/kitti/dataset/sequences'
 
         dataset = SemanticKITTI(self.data_path, shape=(384, 1248), nclasses=20, 
                                 mode='valid', front=360, split=False, crop_size=128, thetas=[0, 81, 161, 241, 321])
